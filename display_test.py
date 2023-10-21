@@ -2,21 +2,19 @@ import time
 import tkinter as tk
 import tkinter.ttk as ttk
 from c1c0_scheduler.server import Subsystem, default_read
-
+from typing import List
 
 # Color constants
 PAGE_COLOR: str = '#D7F0FF'
 NAVBAR_COLOR: str = '#7FB3D5'
 TABLE_COLOR: str = '#2A3B4C'
 TERMINAL_COLOR: str = '#1F1F1F'
-TERMINAL_TEXT: str = '#F0F0F0'
-
+TERMINAL_TEXT: str = '#000000'
 
 # Size constants
 PAGE_RATIO: int = 0.925
 NAVBAR_RATIO: int = 0.075
 BUTTON_PADDING: int = 16
-
 
 # Status constants
 DELAY_TIME: int = 100
@@ -60,11 +58,11 @@ class Window(tk.Tk):
 
 
 class HomePage(tk.Frame):
-    def __init__(self: 'HomePage', systems: list[Subsystem], *args: tuple, **kwargs: dict) -> None:
+    def __init__(self: 'HomePage', systems: List[Subsystem], *args: tuple, **kwargs: dict) -> None:
         # Processing arguments
         super().__init__(bg = PAGE_COLOR, *args, **kwargs)
         self.name: str = 'Home Page'
-        self.systems: list[Subsystem] = systems
+        self.systems: List[Subsystem] = systems
 
         # Creating status table
         self.status: Table = Table(self, 8, 2, 0.885, 0.48)
@@ -128,7 +126,7 @@ class Table(ttk.Treeview):
         # Editing heading
         self.heading(column, text = text)
 
-    def edit_row(self: 'Table', row: int, text: list[str]) -> None:
+    def edit_row(self: 'Table', row: int, text: List[str]) -> None:
         # Editing row
         self.item(str(row), values = text)
 
@@ -153,8 +151,8 @@ class SystemPage(tk.Frame):
     def update(self: 'SystemPage') -> None:
         # Updating terminals
         if (TIME_RUNNING % 1000 == 0):
-            from_str = 'From System Working ... {0}\n'.format(TIME_RUNNING)
-            to_str = 'To System Working ... {0}\n'.format(TIME_RUNNING)
+            from_str = 'From System Working ... {0}\n'.format(TIME_RUNNING/1000)
+            to_str = 'To System Working ... {0}\n'.format(TIME_RUNNING/1000)
             self.from_system.write(from_str)
             self.to_system.write(to_str)
 
@@ -177,11 +175,11 @@ class Terminal(tk.Frame):
         super().__init__(bg = TABLE_COLOR, borderwidth = 3, width = self.terminal_width, height = self.terminal_height, *args, **kwargs)
 
         # Creating label
-        self.label: tk.Label = tk.Label(self, fg = TERMINAL_TEXT, bg = TABLE_COLOR, borderwidth = 3, text = name, font = ('Helvetica', 24))
+        self.label: tk.Label = tk.Label(self, fg = 'white', bg = TABLE_COLOR, borderwidth = 3, text = name, font = ('Helvetica', 24))
         self.label.place(in_ = self, relx = 0.01, rely = 0.01)
 
         # Creating text
-        self.text: tk.Text = tk.Text(self, fg = TERMINAL_TEXT, borderwidth = 3, wrap = 'word', font = ('Helvetica', 16))
+        self.text: tk.Text = tk.Text(self, fg = 'black', borderwidth = 3, wrap = 'word', font = ('Helvetica', 16))
         self.text.place(in_ = self, relx = 0.01, rely = 0.05, relwidth = 0.98, relheight = 0.94)
 
     def write(self: 'Terminal', text: str) -> None:
@@ -197,6 +195,10 @@ if __name__ == '__main__':
     facial_system: Subsystem = Subsystem('facial-recognition', default_read)
     object_system: Subsystem = Subsystem('object-detection', default_read)
     path_system: Subsystem = Subsystem('path-planning', default_read)
+    locomotion_system: Subsystem = Subsystem('locomotion', default_read)
+    chatbot_system: Subsystem = Subsystem('chatbot', default_read)
+
+
 
     # Starting subsystems
     #! facial_system.start()
@@ -207,13 +209,19 @@ if __name__ == '__main__':
     facial_recognition: SystemPage = SystemPage('Facial Recognition', facial_system)
     object_detection: SystemPage = SystemPage('Object Detection', object_system)
     path_planning: SystemPage = SystemPage('Path Planning', path_system)
-    home_page: HomePage = HomePage((facial_system, object_system, path_system))
+    locomotion: SystemPage = SystemPage('Locomotion', locomotion_system)
+    chatbot: Subsystem = SystemPage('Chatbot', chatbot_system)
+    home_page: HomePage = HomePage((facial_system, object_system, path_system,locomotion_system, chatbot_system))
 
     # Adding pages to window
     window.add(home_page)
     window.add(facial_recognition)
     window.add(object_detection)
     window.add(path_planning)
+    window.add(locomotion)
+    window.add(chatbot)
+
+
 
     # Updating window
     def update() -> None:
@@ -224,6 +232,8 @@ if __name__ == '__main__':
         facial_recognition.update()
         object_detection.update()
         path_planning.update()
+        locomotion.update()
+        chatbot.update()
 
         window.after(DELAY_TIME, update)
 
